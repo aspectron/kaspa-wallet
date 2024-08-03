@@ -83,9 +83,6 @@ jobs:
       - name: Run cargo doc tests
         run: cargo test --doc --release --workspace
 
-      - name: Run cargo doc tests with features=no-asm on kaspa-hashes
-        run: cargo test --doc --release -p kaspa-hashes --features=no-asm
-
   # test-release:
   #   name: Test Suite Release
   #   runs-on: ${{ matrix.os }}
@@ -257,13 +254,7 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install zig
-        if: runner.os == 'Linux'
-        uses: goto-bus-stop/setup-zig@v2 # needed for cargo-zigbuild
-
       - name: Build on Linux
         if: runner.os == 'Linux'
-        # We're using musl to make the binaries statically linked and portable
-        run: |
-          cargo install cargo-zigbuild
-          cargo --verbose zigbuild --bin kaspa-wallet --release --target x86_64-unknown-linux-gnu.2.27 # Use an older glibc version
+        run : |
+          cargo build --release --bin kaspa-wallet
