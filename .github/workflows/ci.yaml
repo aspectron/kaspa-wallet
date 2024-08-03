@@ -111,8 +111,8 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Run cargo build with devnet-prealloc feature
-        run: cargo build --release --features devnet-prealloc --workspace --all --tests --benches
+      - name: Run cargo build
+        run: cargo build --release --workspace --all --tests --benches
 
       - name: Run cargo test regular features
         run: cargo nextest run --release --workspace
@@ -265,94 +265,7 @@ jobs:
       # append here any new wasm32 crate not already covered by the existing checks
 
       - name: Run cargo check of kaspa-wrpc-wasm for wasm32 target
-        run: cargo clippy -p kaspa-wrpc-wasm --target wasm32-unknown-unknown
-
-      - name: Run cargo check of kaspa-wallet-cli-wasm for wasm32 target
-        run: cargo clippy -p kaspa-wallet-cli-wasm --target wasm32-unknown-unknown
-
-      - name: Run cargo check of kaspa-wasm for wasm32 target
-        run: cargo clippy -p kaspa-wasm --target wasm32-unknown-unknown
-
-  build-wasm32:
-    name: Build WASM32 SDK
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - name: Setup Environment
-        shell: bash
-        run: echo "SHORT_SHA=`git rev-parse --short HEAD`" >> $GITHUB_ENV
-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install llvm
-        id: install_llvm
-        continue-on-error: true
-        run: |
-          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-          sudo apt-get install -y clang-15 lldb-15 lld-15 clangd-15 clang-tidy-15 clang-format-15 clang-tools-15 llvm-15-dev lld-15 lldb-15 llvm-15-tools libomp-15-dev libc++-15-dev libc++abi-15-dev libclang-common-15-dev libclang-15-dev libclang-cpp15-dev libunwind-15-dev
-          # Make Clang 15 default
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-15/bin/clang++ 100
-          sudo update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-15/bin/clang 100
-          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-15/bin/clang-format 100
-          sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-15/bin/clang-tidy 100
-          sudo update-alternatives --install /usr/bin/run-clang-tidy run-clang-tidy /usr/lib/llvm-15/bin/run-clang-tidy 100
-          # Alias cc to clang
-          sudo update-alternatives --install /usr/bin/cc cc /usr/lib/llvm-15/bin/clang 0
-          sudo update-alternatives --install /usr/bin/c++ c++ /usr/lib/llvm-15/bin/clang++ 0
-
-      - name: Install gcc-multilib
-        # gcc-multilib allows clang to find gnu libraries properly
-        run: |
-          sudo apt-get update
-          sudo apt install -y gcc-multilib
-
-      - name: Install stable toolchain
-        if: steps.install_llvm.outcome == 'success' && steps.install_llvm.conclusion == 'success'
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install wasm-pack
-        run: cargo install wasm-pack
-
-      - name: Add wasm32 target
-        run: rustup target add wasm32-unknown-unknown
-
-      - name: Install NodeJS
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install NodeJS dependencies
-        run: npm install --global typedoc typescript
-
-      - name: Cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Build wasm release
-        run: |
-          pushd .
-          cd wasm
-          bash build-release
-          popd
-          mv wasm/release/kaspa-wasm32-sdk.zip wasm/release/kaspa-wasm32-sdk-${{ env.SHORT_SHA }}.zip
-
-      - name: Upload WASM build to GitHub 
-        uses: actions/upload-artifact@v4
-        with: 
-          name: kaspa-wasm32-sdk-${{ env.SHORT_SHA }}.zip
-          path: wasm/release/kaspa-wasm32-sdk-${{ env.SHORT_SHA }}.zip
+        run: cargo clippy -p kaspa-wallet-core --target wasm32-unknown-unknown
           
   build-release:
     name: Build Ubuntu Release
@@ -389,4 +302,4 @@ jobs:
         # We're using musl to make the binaries statically linked and portable
         run: |
           cargo install cargo-zigbuild
-          cargo --verbose zigbuild --bin kaspad --bin simpa --bin rothschild --release --target x86_64-unknown-linux-gnu.2.27 # Use an older glibc version
+          cargo --verbose zigbuild --bin kaspa-wallet --release --target x86_64-unknown-linux-gnu.2.27 # Use an older glibc version
