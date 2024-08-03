@@ -1,0 +1,30 @@
+#!/bin/bash
+
+cargo fmt --all
+cargo clippy --workspace --tests --benches
+
+status=$?
+if [ $status -ne 0 ]; then
+    echo
+    echo "--> cargo clippy check failed"
+    echo
+    exit $status
+fi
+
+declare -a crates=(
+    "kaspa-wallet"
+)
+
+for crate in "${crates[@]}"
+do
+    # echo "--> wasm32 check of $crate"
+    cargo clippy -p $crate --target wasm32-unknown-unknown --tests --benches
+    status=$?
+    if [ $status -ne 0 ]; then
+        echo
+        echo "--> wasm32 check of $crate failed"
+        echo
+        exit $status
+    fi
+done
+
