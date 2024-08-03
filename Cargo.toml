@@ -54,6 +54,8 @@ kaspa-wasm-core = { git = "https://github.com/aspectron/rusty-kaspa.git", branch
 kaspa-wrpc-client = { git = "https://github.com/aspectron/rusty-kaspa.git", branch = "omega" }
 kaspa-wrpc-wasm = { git = "https://github.com/aspectron/rusty-kaspa.git", branch = "omega" }
 
+sparkle-core = { git = "https://github.com/aspectron/sparkle.git", branch = "omega" }
+
 # external
 aes = "0.8.3"
 ahash = "0.8.6"
